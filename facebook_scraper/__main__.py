@@ -1,7 +1,6 @@
 import argparse
 import logging
 import pathlib
-import datetime
 import sys
 import locale
 import json

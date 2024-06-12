@@ -6,13 +6,11 @@ from typing import Iterator, Optional, Union
 import time
 
 from requests.exceptions import HTTPError
-import warnings
 
 from . import utils
 from .constants import FB_MOBILE_BASE_URL, FB_MBASIC_BASE_URL
 
 from .fb_types import URL, Page, RawPage, RequestFunction, Response
-from . import exceptions
 from .internal_classes import PageClass
 
 logger = logging.getLogger(__name__)
@@ -123,7 +121,7 @@ def generic_iter_pages(
             if posts_per_page:
                 next_page = next_page.replace("num_to_fetch=4", f"num_to_fetch={posts_per_page}")
             next_url = utils.urljoin(base_url, next_page)
-            next_url = next_url.replace("amp;", f"")
+            next_url = next_url.replace("amp;", "")
         else:
             logger.info("Page parser did not find next page URL")
             next_url = None
@@ -168,7 +166,8 @@ class PageParser:
         more_page_element = self.html.find('a[href^="/mbasic/more/?owner_id"]', first=True)
         # TODO [Code quality] Refactor the regex search to use globally available
         message_page_element = self.html.find('a[href^="/messages/thread/"]', first=True)
-        page_id_match = re.search(r'/messages/thread/(\d+)/', message_page_element.attrs.get('href')) if message_page_element else None
+        page_id_match = re.search(
+            r'/messages/thread/(\d+)/', message_page_element.attrs.get('href')) if message_page_element else None
         return {
             'user_id': self.html.find('a[href^="/mbasic/more/?owner_id"]', first=True)
             .attrs.get('href')
@@ -238,17 +237,17 @@ class PageParser:
         raw_posts = raw_page.find(selection)
         # This is not an issue anymore as fb doesn't send bad HTML anymore
         # TODO Remove this in the future as it's not needed
-        #for post in raw_posts:
-            #if not post.find("footer"):
-                # This is not an issue anymore as fb doesn't send bad HTML anymore
-                # Due to malformed HTML served by Facebook, lxml might misinterpret where the footer should go in article elements
-                # If we limit the parsing just to the section element, it fixes it
-                # Please forgive me for parsing HTML with regex
-                #logger.warning(f"No footer in article - reparsing HTML within <section> element")
-                #html = re.search(r'<section.+?>(.+)</section>', raw_page.html).group(1)
-                #raw_page = utils.make_html_element(html=html)
-                #raw_posts = raw_page.find(selection)
-                #break
+        # for post in raw_posts:
+        # if not post.find("footer"):
+        # This is not an issue anymore as fb doesn't send bad HTML anymore
+        # Due to malformed HTML served by Facebook, lxml might misinterpret where the footer should go in article elements
+        # If we limit the parsing just to the section element, it fixes it
+        # Please forgive me for parsing HTML with regex
+        # logger.warning(f"No footer in article - reparsing HTML within <section> element")
+        # html = re.search(r'<section.+?>(.+)</section>', raw_page.html).group(1)
+        # raw_page = utils.make_html_element(html=html)
+        # raw_posts = raw_page.find(selection)
+        # break
 
         if not raw_posts:
             logger.warning(

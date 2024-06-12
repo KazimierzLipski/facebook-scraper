@@ -1,13 +1,12 @@
 import itertools
 import logging
-from urllib.parse import urljoin
 import warnings
 import re
 from functools import partial
 from typing import Iterator, Union
 import json
 import demjson3 as demjson
-from urllib.parse import parse_qs, urlparse, unquote
+from urllib.parse import parse_qs, urlparse
 from datetime import datetime
 import os
 
@@ -280,7 +279,7 @@ class FacebookScraper:
                             url=FB_MOBILE_BASE_URL,
                         )
                         elems = element.find('a.touchable')
-                        html = element.text
+                        # html = element.text
                     elif action['cmd'] == 'script':
                         more_url = re.search(
                             r'("\\/timeline\\/app_collection\\/more\\/[^"]+")', action["code"]
@@ -301,7 +300,7 @@ class FacebookScraper:
                 link = elem.attrs.get("href")
                 try:
                     tagline = elem.find("div.twoLines", first=True).text
-                except:
+                except Exception:
                     tagline = None
                 profile_picture = elem.find("i.profpic", first=True).attrs.get("style")
                 match = re.search(r"url\('(.+)'\)", profile_picture)
@@ -434,7 +433,7 @@ class FacebookScraper:
                     xp = {}
                     try:
                         xp["link"] = elem.find("a", first=True).attrs["href"]
-                    except:
+                    except Exception:
                         pass
                     bits = elem.text.split("\n")
                     if len(bits) == 2:
@@ -451,7 +450,7 @@ class FacebookScraper:
                     place = {}
                     try:
                         place["link"] = elem.find("a", first=True).attrs["href"]
-                    except:
+                    except Exception:
                         pass
                     if "\n" in elem.text:
                         place["text"], place["type"] = elem.text.split("\n")
@@ -658,7 +657,7 @@ class FacebookScraper:
             ld_json = None
             try:
                 ld_json = resp.html.find("script[type='application/ld+json']", first=True).text
-            except:
+            except Exception:
                 logger.error("No ld+json element")
                 url = f'/{page}/community'
                 logger.debug(f"Requesting page from: {url}")
@@ -668,13 +667,13 @@ class FacebookScraper:
                         ld_json = community_resp.html.find(
                             "script[type='application/ld+json']", first=True
                         ).text
-                    except:
+                    except Exception:
                         logger.error("No ld+json element")
                         likes_and_follows = community_resp.html.find(
                             "#page_suggestions_on_liking+div", first=True
                         ).text.split("\n")
                         result["followers"] = utils.convert_numeric_abbr(likes_and_follows[2])
-                except:
+                except Exception:
                     pass
             if ld_json:
                 meta = demjson.decode(ld_json)
@@ -764,7 +763,7 @@ class FacebookScraper:
             no_word_breaks = HTML(html=about_div.html.replace("<wbr/>", ""))
 
             result["about"] = no_word_breaks.text
-        except:
+        except Exception:
             result["about"] = None
 
         try:
@@ -779,7 +778,7 @@ class FacebookScraper:
                     logger.debug(f"Requesting page from: {url}")
                     try:
                         respAdmins = self.get(url).html
-                    except:
+                    except Exception:
                         raise exceptions.UnexpectedResponse("Unable to get admin list")
                 else:
                     respAdmins = resp
@@ -819,7 +818,7 @@ class FacebookScraper:
                     result["other_members"] = [m for m in members if m not in result["admins"]]
                 else:
                     logger.warning("No other members listed")
-        except exceptions.LoginRequired as e:
+        except exceptions.LoginRequired:
             pass
         return result
 
@@ -905,7 +904,7 @@ class FacebookScraper:
                         FB_MOBILE_BASE_URL,
                         f"story.php?story_fbid={post_url}&id=1&m_entstream_source=timeline",
                     )
-                    post = {"original_request_url": post_url, "post_url": url}
+                    # post = {"original_request_url": post_url, "post_url": url}
                     logger.debug(f"Requesting page from: {url}")
                     response = self.get(url)
             if "/watch/" in response.url:
@@ -926,7 +925,7 @@ class FacebookScraper:
                     f"Facebook served mbasic/noscript content unexpectedly on {response.url}"
                 )
             if response.html.find("h1,h2", containing="Unsupported Browser"):
-                warnings.warn(f"Facebook says 'Unsupported Browser'")
+                warnings.warn("Facebook says 'Unsupported Browser'")
             title = response.html.find("title", first=True)
             not_found_titles = ["page not found", "content not found"]
             temp_ban_titles = [
@@ -1160,6 +1159,6 @@ class FacebookScraper:
     def find_group_id(button_id, raw_html):
         """Each group button has an id, which appears later in the script
         tag followed by the group id."""
-        s = raw_html[raw_html.rfind(button_id) :]
-        group_id = s[s.find("result_id:") :].split(",")[0].split(":")[1]
+        s = raw_html[raw_html.rfind(button_id):]
+        group_id = s[s.find("result_id:"):].split(",")[0].split(":")[1]
         return int(group_id)

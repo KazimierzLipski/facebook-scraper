@@ -32,7 +32,7 @@ def set_cookies(cookies):
                 import browser_cookie3
 
                 cookies = browser_cookie3.load(domain_name='.facebook.com')
-            except:
+            except Exception:
                 raise ModuleNotFoundError(
                     "browser_cookie3 must be installed to use browser cookies"
                 )
@@ -50,7 +50,7 @@ def set_cookies(cookies):
             raise exceptions.InvalidCookies(f"Missing cookies with name(s): {missing_cookies}")
         _scraper.session.cookies.update(cookies)
         if not _scraper.is_logged_in():
-            raise exceptions.InvalidCookies(f"Cookies are not valid")
+            raise exceptions.InvalidCookies("Cookies are not valid")
 
 
 def unset_cookies():
@@ -487,7 +487,7 @@ def write_posts_to_csv(
             time.sleep(sleep)
     except KeyboardInterrupt:
         pass
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
 
     if kwargs.get("format") == "json":

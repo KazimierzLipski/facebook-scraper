@@ -14,7 +14,7 @@ from collections import defaultdict
 
 from . import utils, exceptions
 from .constants import FB_BASE_URL, FB_MOBILE_BASE_URL, FB_W3_BASE_URL, FB_MBASIC_BASE_URL
-from .fb_types import Options, Post, RawPost, RequestFunction, Response, URL
+from .fb_types import Options, Post, RawPost, RequestFunction, URL
 
 try:
     from youtube_dl import YoutubeDL
@@ -272,9 +272,9 @@ class PostExtractor:
         # we can use an id on the like button to get that
         return {
             'post_id': self.live_data.get("ft_ent_identifier")
-                       or self.data_ft.get('top_level_post_id')
-                       or self.element.find('[id^="like_"]', first=True).attrs.get('id').split('like_')[
-                           1] if self.element.find('[id^="like_"]', first=True) else None
+            or self.data_ft.get('top_level_post_id')
+            or self.element.find('[id^="like_"]', first=True).attrs.get('id').split('like_')[
+                1] if self.element.find('[id^="like_"]', first=True) else None
         }
 
     def extract_username(self) -> PartialPost:
@@ -303,13 +303,14 @@ class PostExtractor:
             element = self.full_post_html.find('.story_body_container', first=True)
             if not element and self.full_post_html.find("div.msg", first=True):
                 more_button = self.full_post_html.find(self.post_more_button_selector)
-                returned_text = {};
+                returned_text = {}
                 if len(more_button) > 0:
                     logger.debug(
-                        f"found a 'more' button, will send the minimal text notice"
+                        "found a 'more' button, will send the minimal text notice"
                     )
                     returned_text['is_truncated_text'] = "true"
-                    returned_text['full_post_url'] = utils.urljoin(FB_MBASIC_BASE_URL, more_button[0].attrs('href'))
+                    returned_text['full_post_url'] = utils.urljoin(
+                        FB_MBASIC_BASE_URL, more_button[0].attrs('href'))
                 text = self.full_post_html.find("div.msg", first=True).text
                 returned_text['text'] = text
                 returned_text['post_text'] = text
@@ -367,10 +368,11 @@ class PostExtractor:
                             more_button = node.find(self.post_more_button_selector)
                             if len(more_button) > 0:
                                 logger.debug(
-                                    f"found a 'more' button, will send the minimal text notice"
+                                    "found a 'more' button, will send the minimal text notice"
                                 )
                                 texts['is_truncated_text'] = "true"
-                                texts['full_post_url'] = utils.urljoin(FB_MBASIC_BASE_URL, more_button[0].attrs('href'))
+                                texts['full_post_url'] = utils.urljoin(
+                                    FB_MBASIC_BASE_URL, more_button[0].attrs('href'))
                             node = utils.make_html_element(
                                 html=node.html.replace('>… <', '><', 1).replace('>More<', '', 1)
                             )
@@ -384,14 +386,17 @@ class PostExtractor:
                     more_button = content.find(self.post_more_button_selector)
                     if len(more_button) > 0:
                         logger.debug(
-                            f"found a 'more' button, will send the minimal text notice"
+                            "found a 'more' button, will send the minimal text notice"
                         )
                         texts['is_truncated_text'] = "true"
-                        texts['full_post_url'] = utils.urljoin(FB_MBASIC_BASE_URL, more_button[0].attrs.get('href'))
-                        logger.debug(f"getting the text from the full page post : {texts['full_post_url']}")
+                        texts['full_post_url'] = utils.urljoin(
+                            FB_MBASIC_BASE_URL, more_button[0].attrs.get('href'))
+                        logger.debug(
+                            f"getting the text from the full page post : {texts['full_post_url']}")
                         post_urls = [texts['full_post_url']]
-                        post = next(self.scraper.get_posts_by_url(post_urls=post_urls, options={'whitelist_methods': ['extract_text']}))
-                        logger.debug(f"got the text from the full page post")
+                        post = next(self.scraper.get_posts_by_url(post_urls=post_urls,
+                                    options={'whitelist_methods': ['extract_text']}))
+                        logger.debug("got the text from the full page post")
                         texts['full_text'] = post.get('text')
 
                 text = paragraph_separator.join(itertools.chain(post_text, shared_text))
@@ -458,7 +463,7 @@ class PostExtractor:
                 f"Got exact timestamp from abbr[data-store]: {datetime.fromtimestamp(time)}"
             )
             return {'time': datetime.fromtimestamp(time), 'timestamp': time}
-        except:
+        except Exception:
             return None
 
     def extract_user_id(self) -> PartialPost:
@@ -603,12 +608,13 @@ class PostExtractor:
         # the m.facebook method is left as a fallback. if you don't get images using useMbasic attribute,
         # please set it to false
         if useMbasic:
-            logger.debug(f"using mbasic to get HQ image")
+            logger.debug("using mbasic to get HQ image")
             logger.debug(f"fetching mbasicURl {mbasicUrl}")
             try:
                 redirect_response = self.request(mbasicUrl) if mbasicUrl else response
                 url = (
-                    redirect_response.html.find("#objects_container img[src][width][height].img", first=True)
+                    redirect_response.html.find(
+                        "#objects_container img[src][width][height].img", first=True)
                     .attrs.get("src")
                     .replace("&amp;", "&")
                 )
@@ -637,6 +643,7 @@ class PostExtractor:
                 return url
             else:
                 return None
+
     def extract_photo_link(self) -> PartialPost:
         if not self.options.get("allow_extra_requests", True) or not self.options.get(
             "HQ_images", True
@@ -711,8 +718,8 @@ class PostExtractor:
                 hqImage = self.extract_photo_link_HQ(None, useMbasic=True, mbasicUrl=mbasicUrl)
                 logger.info(f"hq image found {hqImage}")
                 images.append(hqImage)
-                #elem = response.html.find(".img[data-sigil='photo-image']", first=True)
-                #descriptions.append(elem.attrs.get("alt") or elem.attrs.get("aria-label"))
+                # elem = response.html.find(".img[data-sigil='photo-image']", first=True)
+                # descriptions.append(elem.attrs.get("alt") or elem.attrs.get("aria-label"))
                 image_ids.append(re.search(r'[=/](\d+)', url).group(1))
             except Exception as e:
                 logger.error(e)
@@ -723,7 +730,7 @@ class PostExtractor:
         last_image_url = utils.urljoin(FB_MBASIC_BASE_URL, photo_links.pop().attrs["href"])
         logger.debug(f"last image url {last_image_url}")
         last_image_response = self.request(last_image_url)
-        next_image_url = last_image_response.html.find(f'a[href^="/photo"]')
+        next_image_url = last_image_response.html.find('a[href^="/photo"]')
         next_image_url = next_image_url[1] if len(next_image_url) > 1 else None
         post_has_more_hidden_images = next_image_url is not None
 
@@ -741,10 +748,11 @@ class PostExtractor:
                 response = self.request(url)
                 photo_link = self.extract_photo_link_HQ(response, useMbasic=True)
                 # try to extract the next image_url from the new page
-                next_image_url = response.html.find(f'a[href^="/photo"]')
+                next_image_url = response.html.find('a[href^="/photo"]')
 
                 # Try to find out if we have more photos in the same post (to prevent going through the whole page album)
-                is_part_of_a_post = response.html.find(f'.attachment a[href^="/story.php"]', first=True)
+                is_part_of_a_post = response.html.find(
+                    '.attachment a[href^="/story.php"]', first=True)
                 if is_part_of_a_post:
                     logger.debug("Photo is part of a post")
                     next_image_url = (next_image_url[1] if len(next_image_url) > 1 else None) \
@@ -819,7 +827,7 @@ class PostExtractor:
                     logger.error(f"Don't know {emoji_class}")
             except AttributeError:
                 try:
-                    emoji_style = elem.find(f"div>i[style]", first=True).attrs.get("style")
+                    emoji_style = elem.find("div>i[style]", first=True).attrs.get("style")
                     emoji_url = utils.get_background_image_url(emoji_style)
                     reaction_type = emoji_url_lookup.get(emoji_url)
                     if not reaction_type:
@@ -869,7 +877,7 @@ class PostExtractor:
                                 logger.error(f"Don't know {emoji_class}")
                         except AttributeError:
                             try:
-                                emoji_style = elem.find(f"div>i[style]", first=True).attrs.get(
+                                emoji_style = elem.find("div>i[style]", first=True).attrs.get(
                                     "style"
                                 )
                                 emoji_url = utils.get_background_image_url(emoji_style)
@@ -1255,7 +1263,7 @@ class PostExtractor:
             # Some users have to use an AJAX POST method to get replies.
             # Check if this is the case by checking for the element that holds the encrypted response token
             use_ajax_post = (
-                    self.full_post_html.find("input[name='fb_dtsg']", first=True) is not None
+                self.full_post_html.find("input[name='fb_dtsg']", first=True) is not None
             )
 
             if use_ajax_post:
@@ -1388,8 +1396,8 @@ class PostExtractor:
                 )
             else:
                 more_url = (
-                        more.attrs.get("href")
-                        + "&m_entstream_source=video_home&player_suborigin=entry_point&player_format=permalink"
+                    more.attrs.get("href")
+                    + "&m_entstream_source=video_home&player_suborigin=entry_point&player_format=permalink"
                 )
         if self.options.get("comment_start_url"):
             more_url = self.options.get("comment_start_url")
@@ -1433,8 +1441,8 @@ class PostExtractor:
                     )
                 else:
                     more_url = (
-                            more.attrs.get("href")
-                            + "&m_entstream_source=video_home&player_suborigin=entry_point&player_format=permalink"
+                        more.attrs.get("href")
+                        + "&m_entstream_source=video_home&player_suborigin=entry_point&player_format=permalink"
                     )
             else:
                 more_url = None
@@ -1496,7 +1504,7 @@ class PostExtractor:
             try:
                 url = self.post.get('post_url').replace(FB_BASE_URL, FB_MBASIC_BASE_URL)
                 response = self.request(url)
-            except exceptions.NotFound as e:
+            except exceptions.NotFound:
                 url = self.post.get('post_url').replace(FB_BASE_URL, FB_MBASIC_BASE_URL)
                 logger.debug(f"Fetching {url}")
                 response = self.request(url)

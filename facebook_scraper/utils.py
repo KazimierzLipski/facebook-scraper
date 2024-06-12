@@ -263,7 +263,7 @@ def parse_cookie_file(filename: str) -> RequestsCookieJar:
 
             try:
                 domain, _, path, secure, expires, name, value = line.split('\t')
-            except Exception as e:
+            except Exception:
                 raise exceptions.InvalidCookies(f"Can't parse line {i + 1}: '{line}'")
             secure = secure.lower() == 'true'
             expires = None if expires == '0' else int(expires)
