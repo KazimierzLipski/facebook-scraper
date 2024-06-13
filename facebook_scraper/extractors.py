@@ -337,11 +337,20 @@ class PostExtractor:
                 post_text = []
                 # i am not sure what shared text is used for, TODO review the use of this variable
                 shared_text = []
-                nodes = content.find('p, header, span[role=presentation]')
+                header_nodes = content.find('header')
+
+                text_nodes = content.find('p')
+                # I think this is has a high risk of potential faliure in the future, one class name change and this will break
+                if len(text_nodes) == 0:
+                    # TODO: Make this more robust
+                    text_nodes = content.find('span')
+                is_share = content.find('div[role="article"]', first=True)
+                nodes = text_nodes
+                nodes.extend(header_nodes)
                 is_share = content.find('div[role="article"]', first=True)
                 if is_share is not None:
                     logger.debug("post is a shared post, will get info from the original")
-                    nodes = is_share.find('p, header, span[role=presentation]')
+                    nodes = is_share.find('p, header, span')
                     texts['is_share'] = "true"
                     # getting shareText
                     share_element = content.find('div[data-ft]', first=True)
