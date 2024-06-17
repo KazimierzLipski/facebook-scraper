@@ -443,7 +443,7 @@ class PostExtractor:
         for page in page_insights.values():
             try:
                 timestamp = page['post_context']['publish_time']
-                logger.debug(
+                print(
                     f"Got exact timestamp from publish_time: {datetime.fromtimestamp(timestamp)}"
                 )
                 return {'time': datetime.fromtimestamp(timestamp), 'timestamp': timestamp}
@@ -455,6 +455,8 @@ class PostExtractor:
         if date_element is not None:
             date = utils.parse_datetime(date_element.text, search=False)
             if date:
+                print("Date element text: %s", date_element.text)
+                print("Parsed date: %s", date)
                 return {'time': date}
             print("Could not parse date: %s", date_element.text)
         else:
@@ -463,6 +465,8 @@ class PostExtractor:
         # Try to look in the entire text
         date = utils.parse_datetime(self.element.text)
         if date:
+            print("Date element text: %s", date_element.text)
+            print("Parsed date: %s", date)
             return {'time': date}
 
         try:
