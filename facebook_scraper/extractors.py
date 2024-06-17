@@ -456,9 +456,9 @@ class PostExtractor:
             date = utils.parse_datetime(date_element.text, search=False)
             if date:
                 return {'time': date}
-            logger.debug("Could not parse date: %s", date_element.text)
+            print("Could not parse date: %s", date_element.text)
         else:
-            logger.warning("Could not find the abbr element for the date")
+            print("Could not find the abbr element for the date")
 
         # Try to look in the entire text
         date = utils.parse_datetime(self.element.text)
@@ -468,11 +468,12 @@ class PostExtractor:
         try:
             date_element = self.full_post_html.find("abbr[data-store*='time']", first=True)
             time = json.loads(date_element.attrs["data-store"])["time"]
-            logger.debug(
+            print(
                 f"Got exact timestamp from abbr[data-store]: {datetime.fromtimestamp(time)}"
             )
             return {'time': datetime.fromtimestamp(time), 'timestamp': time}
         except Exception:
+            print("Didnt find date")
             return None
 
     def extract_user_id(self) -> PartialPost:
