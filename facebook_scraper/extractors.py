@@ -343,7 +343,10 @@ class PostExtractor:
                 # I think this is has a high risk of potential faliure in the future, one class name change and this will break
                 if len(text_nodes) == 0:
                     # TODO: Make this more robust
-                    text_nodes = content.find('span')
+                    containers = content.find('div[data-ft]')
+                    if containers:
+                        text_nodes = containers[1].find('span')
+
                 is_share = content.find('div[role="article"]', first=True)
                 nodes = text_nodes
                 nodes.extend(header_nodes)

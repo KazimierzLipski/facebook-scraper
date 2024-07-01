@@ -167,14 +167,16 @@ class FacebookScraper:
                         )
                     )
                 elif url.startswith(utils.urljoin(FB_MBASIC_BASE_URL, "/groups/")):
+                    extracted_group_post = extract_group_post(
+                        elem,
+                        request_fn=self.get,
+                        options=options,
+                        full_post_html=response.html,
+                        **kwargs,
+                    )
+
                     post.update(
-                        extract_group_post(
-                            elem,
-                            request_fn=self.get,
-                            options=options,
-                            full_post_html=response.html,
-                            **kwargs,
-                        )
+                        extracted_group_post
                     )
                 elif "/stories/" in url or "/story/" in url:
                     post.update(
